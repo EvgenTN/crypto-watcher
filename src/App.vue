@@ -16,6 +16,7 @@
 import Intro from "./components/Intro.vue";
 import Current from "./components/Current.vue";
 import Previous from "./components/Previous.vue";
+import Pusher from "pusher-js";
 import axios from "axios";
 import dayjs from "dayjs";
 
@@ -47,12 +48,14 @@ export default {
         .all([fetch("BTC", date), fetch("ETH", date), fetch("LTC", date)])
         .then(
           axios.spread((BTC, ETH, LTC) => {
-            this.previousCurrency[key] = {
-              BTC: BTC.data.BTC.USD,
-              LTC: LTC.data.LTC.USD,
-              ETH: ETH.data.ETH.USD,
-              DATE: dayjs.unix(date).format("MMMM Do YYYY")
-            };
+            if (BTC.data.BTC && LTC.data.LTC && ETH.data.ETH) {
+              this.previousCurrency[key] = {
+                BTC: BTC.data.BTC.USD,
+                LTC: LTC.data.LTC.USD,
+                ETH: ETH.data.ETH.USD,
+                DATE: dayjs.unix(date).format("MMMM Do YYYY")
+              };
+            }
             localStorage.setItem(
               `${key}Prices`,
               JSON.stringify(this.previousCurrency[key])
@@ -64,18 +67,20 @@ export default {
       let url =
         "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD";
       axios.get(url).then(res => {
-        localStorage.setItem(
-          "BTC",
-          (this.currentCurrency.BTC = res.data.BTC.USD)
-        ),
+        if (res.data.BTC && res.data.LTC && res.data.ETH) {
           localStorage.setItem(
-            "ETH",
-            (this.currentCurrency.ETH = res.data.ETH.USD)
+            "BTC",
+            (this.currentCurrency.BTC = res.data.BTC.USD)
           ),
-          localStorage.setItem(
-            "LTC",
-            (this.currentCurrency.LTC = res.data.LTC.USD)
-          );
+            localStorage.setItem(
+              "ETH",
+              (this.currentCurrency.ETH = res.data.ETH.USD)
+            ),
+            localStorage.setItem(
+              "LTC",
+              (this.currentCurrency.LTC = res.data.LTC.USD)
+            );
+        }
       });
     },
     loadData() {
@@ -99,11 +104,25 @@ export default {
         this.fetchDataFor("fourDays", 4);
         this.fetchDataFor("fiveDays", 5);
         this.fetchDataForToday();
+        let pusher = new Pusher("711348c8fb7dc4a73c20", {
+          cluster: "eu",
+          encrypted: true
+        });
+        let channel = pusher.subscribe("price-updates");
+        channel.bind("coin-updates", data => {
+          if (data.coin.BTC && data.coin.ETH && data.coin.LTC) {
+            this.currentCurrency = {
+              BTC: data.coin.BTC.USD,
+              ETH: data.coin.ETH.USD,
+              LTC: data.coin.LTC.USD
+            };
+          }
+        });
       }
     }
   },
   created() {
-    this.loadData()
+    this.loadData();
   }
 };
 </script> 

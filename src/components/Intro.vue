@@ -1,7 +1,7 @@
 <template>
   <header class="hero">
     <div class="bar logo">
-      <h3>KryptoWatcher</h3>
+      <h3>CryptoWatcher</h3>
       <span class="monitor">
         <span class="monitorText">receive updates</span>
       </span>

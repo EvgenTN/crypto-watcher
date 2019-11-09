@@ -1,5 +1,5 @@
 const express = require('express');
-const path = require('path');
+// const path = require('path');
 const bodyParser = require('body-parser');
 const app = express();
 const Pusher = require('pusher');
@@ -8,10 +8,10 @@ const axios = require('axios');
 
 // Initialise Pusher 
 var pusher = new Pusher({
-  appId: 'PUSHER_APP_ID',
-  key: 'PUSHER_APP_KEY',
-  secret: 'PUSHER_APP_SECRET',
-  cluster: 'PUSHER_APP_CLUSTER',
+  appId: '893904',
+  key: '711348c8fb7dc4a73c20',
+  secret: '7057fdaa9f981bca7af1',
+  cluster: 'eu',
   encrypted: true
 });
 // Body parser middleware 
@@ -26,9 +26,9 @@ app.use((req, res, next) => {
   next()
 });
 // Routes 
-app.get('/', _ => res.send('Welcome'));
+app.get('/', (req, res) => res.send('Welcome'));
 // Simulated Cron 
-setInterval(_ => {
+setInterval(() => {
   let url = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD';
   axios.get(url).then(res => {
     pusher.trigger('price-updates', 'coin-updates', { coin: res.data })
